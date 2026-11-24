@@ -1,300 +1,274 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yoron — Общайся. Создавай. Вдохновляй.</title>
-  <style>
-    :root {
-      --bg-0: #030714;
-      --line: rgba(77, 166, 255, 0.24);
-      --line-strong: rgba(96, 165, 250, 0.55);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --cyan: #38bdf8;
-      --gold: #fbbf24;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: radial-gradient(circle at 50% 0%, #13295e 0%, var(--bg-0) 62%); color: var(--text); min-height: 100vh; display: flex; justify-content: center; }
-    .hidden { display: none !important; }
-    .phone-frame { width: 100%; max-width: 460px; min-height: 100vh; background: linear-gradient(180deg, #060f24 0%, #040917 100%); border-left: 1px solid var(--line); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding-bottom: 72px; }
-    .splash { min-height: 100vh; padding: 36px 24px 32px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; background: radial-gradient(circle at 50% 22%, rgba(56, 189, 248, 0.22), transparent 48%), linear-gradient(180deg, #050d22 0%, #091534 55%, #040814 100%); }
-    .splash-title { font-size: 2.35rem; font-weight: 800; }
-    .splash-slogan { color: #cbd5e1; font-size: 1rem; margin-top: 6px; }
-    .btn-gradient { width: 100%; border: none; border-radius: 14px; padding: 15px 20px; font-size: 1.05rem; font-weight: 700; color: #fff; cursor: pointer; background: linear-gradient(90deg, #7c3aed 0%, #3b82f6 100%); }
-    .link-btn { background: none; border: none; color: #93c5fd; font-size: 0.92rem; cursor: pointer; margin-top: 12px; }
-    .auth-screen { min-height: 100vh; padding: 28px 22px; display: flex; flex-direction: column; justify-content: center; }
-    .card-box { background: rgba(11, 24, 54, 0.92); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
-    .input { width: 100%; background: #050d20; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; color: var(--text); font-size: 0.95rem; }
-    .top-bar { position: sticky; top: 0; z-index: 15; background: rgba(6, 15, 36, 0.94); border-bottom: 1px solid var(--line); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
-    .pill-crystal { background: rgba(37, 99, 235, 0.22); border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 12px; font-size: 0.85rem; font-weight: 700; color: #7dd3fc; cursor: pointer; }
-    .subtabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-    .subtab { background: #091633; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 7px 13px; font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-    .subtab.active { background: linear-gradient(90deg, #2563eb, #7c3aed); color: #fff; border-color: transparent; }
-    .page { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
-    .chat-stream { background: rgba(6, 14, 34, 0.85); border: 1px solid var(--line); border-radius: 18px; padding: 12px; min-height: 280px; max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-    .bubble { max-width: 82%; padding: 9px 12px; border-radius: 15px; font-size: 0.88rem; background: #102046; align-self: flex-start; }
-    .bubble.me { align-self: flex-end; background: #2563eb; }
-    .chat-composer { display: flex; gap: 8px; }
-    .promo-banner { border-radius: 16px; padding: 14px; background: linear-gradient(120deg, #4f46e5, #9333ea 55%, #db2777); }
-    .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .gift-card { position: relative; overflow: hidden; background: #0d1d42; border: 1px solid var(--line); border-radius: 14px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; cursor: pointer; }
-    .gift-card.legendary { border-color: var(--gold); }
-    .ribbon { position: absolute; top: 7px; right: -22px; transform: rotate(35deg); width: 74px; text-align: center; font-size: 0.6rem; font-weight: 800; padding: 2px 0; color: #fff; }
-    .ribbon.market { background: #16a34a; }
-    .ribbon.sold { background: #dc2626; }
-    .price-chip { width: 100%; background: #07122b; border-radius: 999px; padding: 4px 6px; font-size: 0.72rem; font-weight: 700; color: #93c5fd; }
-    .section-heading { font-size: 0.98rem; font-weight: 800; color: var(--gold); margin-top: 4px; }
-    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 460px; background: rgba(6, 14, 34, 0.96); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 4px; z-index: 20; }
-    .nav-item { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
-    .nav-item.active { color: var(--cyan); }
-    .toast { position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); background: #0f172a; border: 1px solid var(--cyan); color: #fff; padding: 9px 14px; border-radius: 12px; font-size: 0.82rem; z-index: 60; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yoron</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; background: #030714; color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+        #app { width: 100%; max-width: 460px; height: 100%; display: flex; flex-direction: column; background: radial-gradient(circle at top, #0a1a3a 0%, #030714 70%); }
+        .screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
+        .screen.active { display: flex; }
+        
+        .auth-box { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+        .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #0a1228; border: 1px solid #1e3a8a; color: white; font-size: 16px; outline: none; }
+        .auth-btn { width: 100%; padding: 15px; border-radius: 12px; background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); color: white; border: none; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+        .auth-link { color: #38bdf8; cursor: pointer; text-decoration: underline; }
+        .error-text { color: #ef4444; font-size: 14px; margin-top: 10px; display: none; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #1e3a8a; }
+        .logo { font-weight: 800; font-size: 22px; }
+        .logo span { color: #38bdf8; }
+        .balance { background: rgba(56, 189, 248, 0.1); padding: 6px 12px; border-radius: 20px; color: #38bdf8; font-weight: 600; border: 1px solid rgba(56, 189, 248, 0.3); }
+        
+        .content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; display: none; }
+        .content.active { display: block; }
+        
+        .chat-item { background: #0a1228; padding: 15px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid #1e3a8a; cursor: pointer; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; background: linear-gradient(135deg, #1e3a8a, #38bdf8); flex-shrink: 0; }
+
+        #messagesBox { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: #0a1228; border-radius: 15px; margin-bottom: 15px; border: 1px solid #1e3a8a; min-height: 50vh; }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 14px; }
+        .msg.mine { background: linear-gradient(90deg, #2563eb, #38bdf8); color: white; align-self: flex-end; }
+        .msg.theirs { background: #1e293b; color: white; align-self: flex-start; }
+        .chat-input-area { display: flex; gap: 10px; }
+        .chat-input { flex: 1; padding: 15px; border-radius: 15px; background: #0a1228; border: 1px solid #1e3a8a; color: white; outline: none; }
+        .send-btn { background: #38bdf8; color: black; border: none; padding: 0 20px; border-radius: 15px; font-weight: bold; font-size: 20px; cursor: pointer; }
+
+        .nav { position: absolute; bottom: 0; width: 100%; display: flex; justify-content: space-around; padding: 15px 10px 25px; background: rgba(6, 15, 36, 0.95); border-top: 1px solid #1e3a8a; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8b98b8; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .nav-item.active { color: #38bdf8; }
+        .nav-item .icon { font-size: 22px; }
+    </style>
 </head>
 <body>
-  <div class="phone-frame">
-    <section id="view-splash" class="splash">
-      <div>
-        <div style="font-size:2.6rem;">💎</div>
-        <div class="splash-title">Yoron</div>
-        <div class="splash-slogan">Общайся. Создавай. Вдохновляй.</div>
-      </div>
-      <div style="font-size:5.5rem;">🔮</div>
-      <div style="width:100%;">
-        <button type="button" class="btn-gradient" id="splash-start-btn">Начать</button>
-        <button type="button" class="link-btn" id="splash-login-link">Уже есть аккаунт? <strong>Войти</strong></button>
-      </div>
-    </section>
+<div id="app">
+    <div id="screen-auth" class="screen active">
+        <div class="auth-box">
+            <h1 style="font-size: 40px; margin-bottom: 5px; color: #38bdf8;">Yoron</h1>
+            <p style="color: #8b98b8; margin-bottom: 30px;">Общайся. Создавай. Вдохновляй.</p>
+            <input type="text" id="regUsername" class="auth-input" placeholder="@username">
+            <input type="password" id="regPassword" class="auth-input" placeholder="Пароль (мин. 6 символов)">
+            
+            <div id="errorBox" class="error-text"></div>
 
-    <section id="view-auth" class="auth-screen hidden">
-      <div class="card-box">
-        <h2>Вход в Yoron</h2>
-        <p style="color:var(--muted);font-size:0.86rem;">Стартовый баланс: <strong>0 Crystal</strong></p>
-        <input class="input" id="auth-username" type="text" placeholder="@username (например, @yoron_user)" />
-        <button type="button" class="btn-gradient" id="auth-submit-btn">Войти</button>
-        <button type="button" class="link-btn" id="auth-back-splash">← Назад</button>
-      </div>
-    </section>
-
-    <div id="view-main" class="hidden">
-      <header class="top-bar">
-        <strong id="header-title">💎 Yoron</strong>
-        <button type="button" class="pill-crystal" id="top-balance-btn">💎 <span id="hud-crystals">0</span></button>
-      </header>
-
-      <section id="tab-chats" class="page">
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input class="input" id="chat-target" style="padding:8px 10px;font-size:0.84rem;max-width:160px;" value="@alexey" />
-          <button type="button" class="subtab" id="preset-ai-btn">@ai</button>
-          <button type="button" class="subtab" id="preset-all-btn">@all</button>
+            <button id="btn-register" class="auth-btn" style="margin-top: 10px;">Создать аккаунт</button>
+            <button id="btn-login" class="auth-btn" style="display: none; margin-top: 10px;">Войти</button>
+            <p style="margin-top: 20px; font-size: 14px;">
+                <span id="auth-toggle-text">Уже есть аккаунт?</span> 
+                <span class="auth-link" id="auth-toggle-link">Войти</span>
+            </p>
         </div>
-        <div class="chat-stream" id="chat-stream">
-          <div class="bubble"><small>@alexey</small><div>Привет! Напиши сообщение или упомяни @ai.</div></div>
-        </div>
-        <form class="chat-composer" id="chat-form">
-          <input class="input" id="chat-input" placeholder="Написать сообщение или @ai..." autocomplete="off" />
-          <button type="submit" class="btn-gradient" style="width:auto;padding:11px 16px;font-size:0.88rem;">➤</button>
-        </form>
-      </section>
-
-      <section id="tab-gifts" class="page hidden">
-        <div class="promo-banner">
-          <h3>Подарите эмоции</h3>
-          <p style="font-size:0.84rem;">Подарки и NFT со статусами Маркет и Продан</p>
-        </div>
-        <div class="subtabs" id="rarity-filter-tabs">
-          <button type="button" class="subtab active" data-filter="all">Все</button>
-          <button type="button" class="subtab" data-filter="popular">Популярные</button>
-          <button type="button" class="subtab" data-filter="rare">Редкие</button>
-          <button type="button" class="subtab" data-filter="legendary">Легендарные</button>
-        </div>
-        <div class="shop-grid" id="standard-gifts-grid"></div>
-        <div class="section-heading">👑 Легендарные</div>
-        <div class="shop-grid" id="legendary-gifts-grid"></div>
-      </section>
-
-      <section id="tab-inv" class="page hidden">
-        <div class="card-box">
-          <h3>Моя коллекция</h3>
-          <div class="shop-grid" id="inventory-grid"></div>
-        </div>
-      </section>
-
-      <section id="tab-profile" class="page hidden">
-        <div class="card-box">
-          <h3>Профиль: <span id="profile-handle">@yoron_user</span></h3>
-          <div>Баланс: <strong id="profile-crystal-big">0 Crystal</strong></div>
-          <input class="input" id="master-key-input" type="password" placeholder="Мастер-ключ (yoron-admin-2026)" />
-          <button type="button" class="btn-gradient" id="claim-key-btn">Активировать ключ (+1,000)</button>
-          <button type="button" class="link-btn" id="switch-account-btn">Сменить @username</button>
-        </div>
-      </section>
-
-      <nav class="bottom-nav">
-        <button type="button" class="nav-item active" data-nav="chats"><span>💬</span><span>Чаты</span></button>
-        <button type="button" class="nav-item" data-nav="gifts"><span>🎁</span><span>Подарки</span></button>
-        <button type="button" class="nav-item" data-nav="inv"><span>🎒</span><span>Коллекция</span></button>
-        <button type="button" class="nav-item" data-nav="profile"><span>⚙️</span><span>Профиль</span></button>
-      </nav>
     </div>
-  </div>
-  <div class="toast hidden" id="toast"></div>
 
-  <script>
-    (function () {
-      var DB_URL = "https://yoron-chat-default-rtdb.asia-southeast1.firebasedatabase.app";
-      var ADMIN_KEY = "yoron-admin-2026";
-      var ITEMS = [
-        { id: "heart", name: "Сердце", price: 50, rarity: "popular", status: "market", emoji: "❤️", legendary: false },
-        { id: "rose", name: "Роза", price: 120, rarity: "popular", status: "market", emoji: "🌹", legendary: false },
-        { id: "crown", name: "Корона", price: 250, rarity: "rare", status: "market", emoji: "👑", legendary: false },
-        { id: "festive", name: "Праздничный", price: 300, rarity: "popular", status: "market", emoji: "🎁", legendary: false },
-        { id: "futuristic", name: "Футуристический", price: 500, rarity: "rare", status: "market", emoji: "🛡️", legendary: false },
-        { id: "nft-gift", name: "NFT Подарок", price: 1000, rarity: "rare", status: "market", emoji: "💠", legendary: false },
-        { id: "wood-horse", name: "Деревянная лошадь", price: 0, rarity: "popular", status: "sold", emoji: "🐴", legendary: false },
-        { id: "dragon", name: "Дракон", price: 5000, rarity: "legendary", status: "market", emoji: "🐉", legendary: true },
-        { id: "crystal-core", name: "Кристалл", price: 10000, rarity: "legendary", status: "market", emoji: "🔮", legendary: true },
-        { id: "cyber-avatar", name: "Аватар", price: 15000, rarity: "legendary", status: "market", emoji: "🤖", legendary: true }
-      ];
-      var username = localStorage.getItem("yoron_u") || "";
-      var crystals = Number(localStorage.getItem("yoron_c") || "0");
-      var inventory = JSON.parse(localStorage.getItem("yoron_inv") || "[]");
-      var filter = "all";
+    <div id="screen-main" class="screen" style="display: none;">
+        <div class="header">
+            <div class="logo">Yoron<span>.</span></div>
+            <div class="balance">💎 <span id="balanceDisplay">0</span></div>
+        </div>
 
-      function $(id) { return document.getElementById(id); }
-      function toast(msg) {
-        var el = $("toast");
-        el.textContent = msg;
-        el.classList.remove("hidden");
-        setTimeout(function () { el.classList.add("hidden"); }, 2400);
+        <div id="tab-chats" class="content active">
+            <div id="chat-list">
+                <h2>Чаты</h2>
+                <div class="chat-item" id="chat-btn-ai">
+                    <div class="avatar" style="background: linear-gradient(135deg, #1e3a8a, #38bdf8);">🤖</div>
+                    <div><div style="font-weight: bold;">@ai</div><div style="color: #8b98b8; font-size: 13px;">ИИ-помощник</div></div>
+                </div>
+                <div class="chat-item" id="chat-btn-all">
+                    <div class="avatar" style="background: linear-gradient(135deg, #b45309, #fbbf24);">🌍</div>
+                    <div><div style="font-weight: bold;">@all</div><div style="color: #8b98b8; font-size: 13px;">Общий чат</div></div>
+                </div>
+            </div>
+
+            <div id="chat-room" style="display: none; flex-direction: column; height: 100%;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #1e3a8a; padding-bottom: 10px;">
+                    <button id="btn-close-chat" style="background: none; border: none; color: #38bdf8; font-size: 24px; cursor: pointer;">←</button>
+                    <h3 id="chat-title" style="margin: 0;">Чат</h3>
+                </div>
+                <div id="messagesBox"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="msgInput" class="chat-input" placeholder="Сообщение...">
+                    <button id="btn-send-msg" class="send-btn">➤</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-profile" class="content">
+            <div style="text-align: center; padding: 30px;">
+                <div class="avatar" style="width: 100px; height: 100px; font-size: 50px; margin: 0 auto 15px;">👤</div>
+                <h2 style="margin: 0;" id="profileUsername">@...</h2>
+                <p style="color: #8b98b8; margin-top: 5px;">Баланс: 💎 <span id="profileBalance">0</span></p>
+            </div>
+            <button id="btn-logout" style="width: 100%; padding: 15px; border-radius: 12px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; font-weight: bold; cursor: pointer;">Выйти</button>
+        </div>
+
+        <div class="nav">
+            <div id="nav-chats" class="nav-item active"><div class="icon">💬</div>Чаты</div>
+            <div id="nav-profile" class="nav-item"><div class="icon">👤</div>Профиль</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getDatabase, ref, set, get, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBghMQlLcZxnxn9k7X5MkivFD8pIA2tDLE",
+    authDomain: "yoron-messenger.firebaseapp.com",
+    databaseURL: "https://yoron-messenger-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "yoron-messenger",
+    storageBucket: "yoron-messenger.firebasestorage.app",
+    messagingSenderId: "197415382088",
+    appId: "1:197415382088:web:d8f26bcbf8cef7bbfd7c7d"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  let isLoginMode = false;
+  let currentUser = "";
+
+  const errorBox = document.getElementById('errorBox');
+
+  function showError(msg) {
+      errorBox.innerText = "Ошибка: " + msg;
+      errorBox.style.display = 'block';
+  }
+
+  document.getElementById('auth-toggle-link').onclick = () => {
+      errorBox.style.display = 'none';
+      isLoginMode = !isLoginMode;
+      document.getElementById('btn-register').style.display = isLoginMode ? 'none' : 'block';
+      document.getElementById('btn-login').style.display = isLoginMode ? 'block' : 'none';
+      document.getElementById('auth-toggle-text').innerText = isLoginMode ? 'Нет аккаунта?' : 'Уже есть аккаунт?';
+      document.getElementById('auth-toggle-link').innerText = isLoginMode ? 'Создать' : 'Войти';
+  };
+
+  document.getElementById('btn-register').onclick = async () => {
+      errorBox.style.display = 'none';
+      const username = document.getElementById('regUsername').value.trim();
+      const password = document.getElementById('regPassword').value;
+      
+      if (!username || !password) return showError('Заполните все поля!');
+      if (password.length < 6) return showError('Пароль должен быть минимум 6 символов!');
+      
+      const cleanUsername = username.replace('@', '').toLowerCase();
+      const email = cleanUsername + '@yoron.com';
+
+      try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          await set(ref(db, 'users/' + userCredential.user.uid), { username: cleanUsername, balance: 0, inventory: [] });
+          showApp(cleanUsername, 0);
+      } catch (error) {
+          showError(error.message);
       }
-      function save() {
-        localStorage.setItem("yoron_u", username);
-        localStorage.setItem("yoron_c", String(crystals));
-        localStorage.setItem("yoron_inv", JSON.stringify(inventory));
-        $("hud-crystals").textContent = crystals.toLocaleString("en-US");
-        $("profile-crystal-big").textContent = crystals.toLocaleString("en-US") + " Crystal";
-        $("profile-handle").textContent = username || "@yoron_user";
+  };
+
+  document.getElementById('btn-login').onclick = async () => {
+      errorBox.style.display = 'none';
+      const username = document.getElementById('regUsername').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const cleanUsername = username.replace('@', '').toLowerCase();
+      const email = cleanUsername + '@yoron.com';
+
+      try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const snapshot = await get(ref(db, 'users/' + userCredential.user.uid));
+          if (snapshot.exists()) {
+              showApp(snapshot.val().username, snapshot.val().balance);
+          }
+      } catch (error) {
+          showError(error.message);
       }
-      function showView(id) {
-        ["view-splash", "view-auth", "view-main"].forEach(function (v) {
-          $(v).classList.toggle("hidden", v !== id);
-        });
-      }
-      function switchNav(nav) {
-        ["chats", "gifts", "inv", "profile"].forEach(function (t) {
-          $("tab-" + t).classList.toggle("hidden", t !== nav);
-        });
-        document.querySelectorAll(".nav-item").forEach(function (b) {
-          b.classList.toggle("active", b.getAttribute("data-nav") === nav);
-        });
-        if (nav === "gifts") renderMarket();
-        if (nav === "inv") renderInv();
-      }
-      function appendMsg(from, to, text) {
-        var b = document.createElement("div");
-        b.className = "bubble" + (from === username ? " me" : "");
-        b.innerHTML = "<small>" + from + " → " + to + "</small><div>" + text.replace(/</g, "&lt;") + "</div>";
-        $("chat-stream").appendChild(b);
-        $("chat-stream").scrollTop = $("chat-stream").scrollHeight;
-        fetch(DB_URL + "/messages.json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ from: from, to: to, text: text, ts: Date.now() })
-        }).catch(function () {});
-      }
-      function cardHtml(it) {
-        var sold = it.status === "sold";
-        return '<div class="gift-card ' + (it.legendary ? "legendary" : "") + '" data-id="' + it.id + '">' +
-          '<div class="ribbon ' + (sold ? "sold" : "market") + '">' + (sold ? "Продан" : "Маркет") + '</div>' +
-          '<div style="font-size:1.9rem;">' + it.emoji + '</div>' +
-          '<div style="font-size:0.76rem;font-weight:700;">' + it.name + '</div>' +
-          '<div class="price-chip">' + (sold ? "💎 —" : "💎 " + it.price) + '</div>' +
-          '</div>';
-      }
-      function renderMarket() {
-        var list = ITEMS.filter(function (x) { return filter === "all" || x.rarity === filter; });
-        $("standard-gifts-grid").innerHTML = list.filter(function (x) { return !x.legendary; }).map(cardHtml).join("");
-        $("legendary-gifts-grid").innerHTML = list.filter(function (x) { return x.legendary; }).map(cardHtml).join("");
-        document.querySelectorAll(".gift-card").forEach(function (el) {
-          el.addEventListener("click", function () {
-            var it = ITEMS.find(function (x) { return x.id === el.getAttribute("data-id"); });
-            if (!it || it.status === "sold") { toast("Предмет уже продан"); return; }
-            if (crystals < it.price) { toast("Не хватает Crystal. Активируйте ключ в Профиле"); return; }
-            crystals -= it.price;
-            inventory.unshift(it);
-            save();
-            var target = $("chat-target").value.trim() || "@all";
-            appendMsg(username || "@user", target, it.emoji + " Подарил «" + it.name + "»");
-            switchNav("chats");
-            toast("Подарок отправлен!");
+  };
+
+  document.getElementById('btn-logout').onclick = () => {
+      signOut(auth).then(() => {
+          document.getElementById('screen-main').style.display = 'none';
+          document.getElementById('screen-auth').classList.add('active');
+          document.getElementById('regUsername').value = '';
+          document.getElementById('regPassword').value = '';
+          errorBox.style.display = 'none';
+      });
+  };
+
+  document.getElementById('nav-chats').onclick = () => switchTab('chats');
+  document.getElementById('nav-profile').onclick = () => switchTab('profile');
+  document.getElementById('chat-btn-ai').onclick = () => openChat('ai');
+  document.getElementById('chat-btn-all').onclick = () => openChat('all');
+  document.getElementById('btn-close-chat').onclick = closeChat;
+  document.getElementById('btn-send-msg').onclick = sendMessage;
+
+  function showApp(username, balance) {
+      currentUser = username;
+      document.getElementById('screen-auth').classList.remove('active');
+      document.getElementById('screen-main').style.display = 'flex';
+      document.getElementById('profileUsername').innerText = '@' + username;
+      document.getElementById('balanceDisplay').innerText = balance;
+      document.getElementById('profileBalance').innerText = balance;
+  }
+
+  function switchTab(tab) {
+      document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('nav-' + tab).classList.add('active');
+  }
+
+  let currentChat = 'all';
+  function openChat(chatName) {
+      currentChat = chatName;
+      document.getElementById('chat-title').innerText = chatName === 'ai' ? '@ai (ИИ)' : '@all (Общий)';
+      document.getElementById('chat-list').style.display = 'none';
+      document.getElementById('chat-room').style.display = 'flex';
+      
+      const messagesBox = document.getElementById('messagesBox');
+      messagesBox.innerHTML = '';
+      
+      const chatRef = ref(db, 'chats/' + currentChat);
+      onValue(chatRef, (snapshot) => {
+          messagesBox.innerHTML = '';
+          snapshot.forEach((child) => {
+              const msg = child.val();
+              const isMine = msg.sender === currentUser;
+              messagesBox.innerHTML += `<div class="msg ${isMine ? 'mine' : 'theirs'}">
+                  <div style="font-size: 10px; font-weight: bold; opacity: 0.7; margin-bottom: 3px;">${isMine ? 'Вы' : msg.sender}</div>
+                  ${msg.text}
+              </div>`;
           });
-        });
-      }
-      function renderInv() {
-        if (!inventory.length) {
-          $("inventory-grid").innerHTML = "<div style='color:var(--muted);font-size:0.84rem;grid-column:1/-1;'>Коллекция пуста.</div>";
-          return;
-        }
-        $("inventory-grid").innerHTML = inventory.map(function (it) {
-          return '<div class="gift-card ' + (it.legendary ? "legendary" : "") + '"><div style="font-size:1.9rem;">' + it.emoji + '</div><div style="font-size:0.76rem;font-weight:700;">' + it.name + '</div></div>';
-        }).join("");
-      }
+          messagesBox.scrollTop = messagesBox.scrollHeight;
+      });
+  }
 
-      $("splash-start-btn").addEventListener("click", function () {
-        if (username) { save(); showView("view-main"); switchNav("chats"); } else { showView("view-auth"); }
-      });
-      $("splash-login-link").addEventListener("click", function () { showView("view-auth"); });
-      $("auth-back-splash").addEventListener("click", function () { showView("view-splash"); });
-      $("auth-submit-btn").addEventListener("click", function () {
-        var raw = $("auth-username").value.trim().replace(/^@+/, "");
-        if (!raw) { toast("Введите @username"); return; }
-        var nextU = "@" + raw;
-        if (username !== nextU) { username = nextU; crystals = 0; inventory = []; }
-        save();
-        showView("view-main");
-        switchNav("chats");
-      });
-      document.querySelectorAll(".nav-item").forEach(function (b) {
-        b.addEventListener("click", function () { switchNav(b.getAttribute("data-nav")); });
-      });
-      $("top-balance-btn").addEventListener("click", function () { switchNav("profile"); });
-      $("preset-ai-btn").addEventListener("click", function () { $("chat-target").value = "@ai"; });
-      $("preset-all-btn").addEventListener("click", function () { $("chat-target").value = "@all"; });
-      $("chat-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        var txt = $("chat-input").value.trim();
-        if (!txt) return;
-        var target = $("chat-target").value.trim() || "@all";
-        $("chat-input").value = "";
-        appendMsg(username || "@user", target, txt);
-        if (/@ai/i.test(txt) || target === "@ai") {
-          setTimeout(function () {
-            appendMsg("@ai", username || "@user", "Принято: «" + txt.replace(/@ai/gi, "").trim() + "»");
-          }, 350);
-        }
-      });
-      document.querySelectorAll("#rarity-filter-tabs .subtab").forEach(function (b) {
-        b.addEventListener("click", function () {
-          document.querySelectorAll("#rarity-filter-tabs .subtab").forEach(function (x) { x.classList.remove("active"); });
-          b.classList.add("active");
-          filter = b.getAttribute("data-filter");
-          renderMarket();
-        });
-      });
-      $("claim-key-btn").addEventListener("click", function () {
-        if ($("master-key-input").value.trim() === ADMIN_KEY) {
-          crystals += 1000;
-          $("master-key-input").value = "";
-          save();
-          toast("Начислено +1,000 Crystal!");
-        } else {
-          toast("Неверный мастер-ключ");
-        }
-      });
-      $("switch-account-btn").addEventListener("click", function () { showView("view-auth"); });
-      save();
-    })();
-  </script>
+  function closeChat() {
+      document.getElementById('chat-list').style.display = 'block';
+      document.getElementById('chat-room').style.display = 'none';
+  }
+
+  function sendMessage() {
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
+      if (text !== '') {
+          const chatRef = ref(db, 'chats/' + currentChat);
+          push(chatRef, { text: text, sender: currentUser, time: Date.now() });
+          input.value = '';
+          
+          if (currentChat === 'ai') {
+              setTimeout(() => {
+                  let aiReply = "Я ИИ-помощник Yoron. Спроси меня про кристаллы или подарки!";
+                  const lowerText = text.toLowerCase();
+                  if (lowerText.includes('привет')) aiReply = "Привет! Рад тебя видеть в Yoron. Чем могу помочь?";
+                  else if (lowerText.includes('кристалл')) aiReply = "Кристаллы 💎 — это внутренняя валюта. Их можно тратить на подарки!";
+                  else if (lowerText.includes('подарок')) aiReply = "В магазине есть обычные и легендарные подарки 👑!";
+                  push(chatRef, { text: aiReply, sender: '@ai', time: Date.now() });
+              }, 1000);
+          }
+      }
+  }
+</script>
 </body>
 </html>
