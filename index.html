@@ -110,11 +110,13 @@
     </div>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getDatabase, ref, set, get, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<!-- СТАРЫЙ СПОСОБ ПОДКЛЮЧЕНИЯ FIREBASE (РАБОТАЕТ ВСЕГДА) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+<script>
+  // Инициализация Firebase (старый синтаксис)
   const firebaseConfig = {
     apiKey: "AIzaSyBghMQlLcZxnxn9k7X5MkivFD8pIA2tDLE",
     authDomain: "yoron-messenger.firebaseapp.com",
@@ -125,9 +127,9 @@
     appId: "1:197415382088:web:d8f26bcbf8cef7bbfd7c7d"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
 
   let isLoginMode = false;
   let currentUser = "";
@@ -148,7 +150,10 @@
       document.getElementById('auth-toggle-link').innerText = isLoginMode ? 'Создать' : 'Войти';
   };
 
-  document.getElementById('btn-register').onclick = async () => {
+  // РЕГИСТРАЦИЯ
+  document.getElementById('btn-register').onclick = () => {
+      alert("КНОПКА РАБОТАЕТ! Идет подключение к Firebase..."); // <--- ПРОВЕРКА
+      
       errorBox.style.display = 'none';
       const username = document.getElementById('regUsername').value.trim();
       const password = document.getElementById('regPassword').value;
@@ -159,35 +164,43 @@
       const cleanUsername = username.replace('@', '').toLowerCase();
       const email = cleanUsername + '@yoron.com';
 
-      try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          await set(ref(db, 'users/' + userCredential.user.uid), { username: cleanUsername, balance: 0, inventory: [] });
-          showApp(cleanUsername, 0);
-      } catch (error) {
-          showError(error.message);
-      }
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            db.ref('users/' + userCredential.user.uid).set({
+                username: cleanUsername,
+                balance: 0,
+                inventory: []
+            });
+            showApp(cleanUsername, 0);
+        })
+        .catch((error) => {
+            showError(error.message);
+        });
   };
 
-  document.getElementById('btn-login').onclick = async () => {
+  // ВХОД
+  document.getElementById('btn-login').onclick = () => {
       errorBox.style.display = 'none';
       const username = document.getElementById('regUsername').value.trim();
       const password = document.getElementById('regPassword').value;
       const cleanUsername = username.replace('@', '').toLowerCase();
       const email = cleanUsername + '@yoron.com';
 
-      try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          const snapshot = await get(ref(db, 'users/' + userCredential.user.uid));
-          if (snapshot.exists()) {
-              showApp(snapshot.val().username, snapshot.val().balance);
-          }
-      } catch (error) {
-          showError(error.message);
-      }
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            db.ref('users/' + userCredential.user.uid).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    showApp(snapshot.val().username, snapshot.val().balance);
+                }
+            });
+        })
+        .catch((error) => {
+            showError("Неверный логин или пароль");
+        });
   };
 
   document.getElementById('btn-logout').onclick = () => {
-      signOut(auth).then(() => {
+      auth.signOut().then(() => {
           document.getElementById('screen-main').style.display = 'none';
           document.getElementById('screen-auth').classList.add('active');
           document.getElementById('regUsername').value = '';
@@ -229,8 +242,7 @@
       const messagesBox = document.getElementById('messagesBox');
       messagesBox.innerHTML = '';
       
-      const chatRef = ref(db, 'chats/' + currentChat);
-      onValue(chatRef, (snapshot) => {
+      db.ref('chats/' + currentChat).on('value', (snapshot) => {
           messagesBox.innerHTML = '';
           snapshot.forEach((child) => {
               const msg = child.val();
@@ -253,8 +265,7 @@
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (text !== '') {
-          const chatRef = ref(db, 'chats/' + currentChat);
-          push(chatRef, { text: text, sender: currentUser, time: Date.now() });
+          db.ref('chats/' + currentChat).push({ text: text, sender: currentUser, time: Date.now() });
           input.value = '';
           
           if (currentChat === 'ai') {
@@ -264,7 +275,7 @@
                   if (lowerText.includes('привет')) aiReply = "Привет! Рад тебя видеть в Yoron. Чем могу помочь?";
                   else if (lowerText.includes('кристалл')) aiReply = "Кристаллы 💎 — это внутренняя валюта. Их можно тратить на подарки!";
                   else if (lowerText.includes('подарок')) aiReply = "В магазине есть обычные и легендарные подарки 👑!";
-                  push(chatRef, { text: aiReply, sender: '@ai', time: Date.now() });
+                  db.ref('chats/' + currentChat).push({ text: aiReply, sender: '@ai', time: Date.now() });
               }, 1000);
           }
       }
