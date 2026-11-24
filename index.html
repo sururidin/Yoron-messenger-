@@ -4,19 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Yoron</title>
+    <!-- Скрипт Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; background: #030714; color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
         #app { width: 100%; max-width: 460px; height: 100%; display: flex; flex-direction: column; background: radial-gradient(circle at top, #0a1a3a 0%, #030714 70%); }
-        .screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
-        .screen.active { display: flex; }
         
-        .auth-box { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%; }
-        .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; background: #0a1228; border: 1px solid #1e3a8a; color: white; font-size: 16px; outline: none; }
-        .auth-btn { width: 100%; padding: 15px; border-radius: 12px; background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); color: white; border: none; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
-        .auth-link { color: #38bdf8; cursor: pointer; text-decoration: underline; }
-        .error-text { color: #ef4444; font-size: 14px; margin-top: 10px; display: none; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; }
-
         .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #1e3a8a; }
         .logo { font-weight: 800; font-size: 22px; }
         .logo span { color: #38bdf8; }
@@ -44,25 +38,14 @@
 </head>
 <body>
 <div id="app">
-    <div id="screen-auth" class="screen active">
-        <div class="auth-box">
-            <h1 style="font-size: 40px; margin-bottom: 5px; color: #38bdf8;">Yoron</h1>
-            <p style="color: #8b98b8; margin-bottom: 30px;">Общайся. Создавай. Вдохновляй.</p>
-            <input type="text" id="regUsername" class="auth-input" placeholder="@username">
-            <input type="password" id="regPassword" class="auth-input" placeholder="Пароль (мин. 6 символов)">
-            
-            <div id="errorBox" class="error-text"></div>
-
-            <button id="btn-register" class="auth-btn" style="margin-top: 10px;">Создать аккаунт</button>
-            <button id="btn-login" class="auth-btn" style="display: none; margin-top: 10px;">Войти</button>
-            <p style="margin-top: 20px; font-size: 14px;">
-                <span id="auth-toggle-text">Уже есть аккаунт?</span> 
-                <span class="auth-link" id="auth-toggle-link">Войти</span>
-            </p>
-        </div>
+    <!-- Экран загрузки (пока идет вход через Telegram) -->
+    <div id="screen-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center;">
+        <h1 style="color: #38bdf8; font-size: 40px;">Yoron</h1>
+        <p style="color: #8b98b8;">Вход через Telegram...</p>
     </div>
 
-    <div id="screen-main" class="screen" style="display: none;">
+    <!-- Основное приложение -->
+    <div id="screen-main" style="display: none; flex-direction: column; height: 100%;">
         <div class="header">
             <div class="logo">Yoron<span>.</span></div>
             <div class="balance">💎 <span id="balanceDisplay">0</span></div>
@@ -100,7 +83,6 @@
                 <h2 style="margin: 0;" id="profileUsername">@...</h2>
                 <p style="color: #8b98b8; margin-top: 5px;">Баланс: 💎 <span id="profileBalance">0</span></p>
             </div>
-            <button id="btn-logout" style="width: 100%; padding: 15px; border-radius: 12px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; font-weight: bold; cursor: pointer;">Выйти</button>
         </div>
 
         <div class="nav">
@@ -110,13 +92,12 @@
     </div>
 </div>
 
-<!-- СТАРЫЙ СПОСОБ ПОДКЛЮЧЕНИЯ FIREBASE (РАБОТАЕТ ВСЕГДА) -->
+<!-- Firebase SDK (старая версия для стабильности) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-  // Инициализация Firebase (старый синтаксис)
+  // Инициализация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBghMQlLcZxnxn9k7X5MkivFD8pIA2tDLE",
     authDomain: "yoron-messenger.firebaseapp.com",
@@ -128,102 +109,55 @@
   };
 
   firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
   const db = firebase.database();
+  
+  let currentUser = "Guest"; // По умолчанию
 
-  let isLoginMode = false;
-  let currentUser = "";
-
-  const errorBox = document.getElementById('errorBox');
-
-  function showError(msg) {
-      errorBox.innerText = "Ошибка: " + msg;
-      errorBox.style.display = 'block';
+  // 1. АВТОМАТИЧЕСКИЙ ВХОД ЧЕРЕЗ TELEGRAM
+  if (window.Telegram && window.Telegram.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+      
+      // Берем ник из Telegram (если нет, ставим "user")
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+          currentUser = tg.initDataUnsafe.user.username || "user" + tg.initDataUnsafe.user.id;
+      } else {
+          currentUser = "Guest" + Math.floor(Math.random() * 1000);
+      }
+  } else {
+      // Если открыто в браузере, даем случайное имя для теста
+      currentUser = "WebUser" + Math.floor(Math.random() * 1000);
   }
 
-  document.getElementById('auth-toggle-link').onclick = () => {
-      errorBox.style.display = 'none';
-      isLoginMode = !isLoginMode;
-      document.getElementById('btn-register').style.display = isLoginMode ? 'none' : 'block';
-      document.getElementById('btn-login').style.display = isLoginMode ? 'block' : 'none';
-      document.getElementById('auth-toggle-text').innerText = isLoginMode ? 'Нет аккаунта?' : 'Уже есть аккаунт?';
-      document.getElementById('auth-toggle-link').innerText = isLoginMode ? 'Создать' : 'Войти';
-  };
-
-  // РЕГИСТРАЦИЯ
-  document.getElementById('btn-register').onclick = () => {
-      alert("КНОПКА РАБОТАЕТ! Идет подключение к Firebase..."); // <--- ПРОВЕРКА
+  // 2. ЗАГРУЗКА ПРОФИЛЯ (создаем, если нет)
+  const userRef = db.ref('users/' + currentUser);
+  userRef.once('value').then((snapshot) => {
+      if (!snapshot.exists()) {
+          // Если юзера нет в базе, создаем ему баланс 0
+          userRef.set({ balance: 0, inventory: [] });
+      }
       
-      errorBox.style.display = 'none';
-      const username = document.getElementById('regUsername').value.trim();
-      const password = document.getElementById('regPassword').value;
+      // Показываем приложение
+      document.getElementById('screen-loading').style.display = 'none';
+      document.getElementById('screen-main').style.display = 'flex';
+      document.getElementById('profileUsername').innerText = '@' + currentUser;
       
-      if (!username || !password) return showError('Заполните все поля!');
-      if (password.length < 6) return showError('Пароль должен быть минимум 6 символов!');
-      
-      const cleanUsername = username.replace('@', '').toLowerCase();
-      const email = cleanUsername + '@yoron.com';
-
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            db.ref('users/' + userCredential.user.uid).set({
-                username: cleanUsername,
-                balance: 0,
-                inventory: []
-            });
-            showApp(cleanUsername, 0);
-        })
-        .catch((error) => {
-            showError(error.message);
-        });
-  };
-
-  // ВХОД
-  document.getElementById('btn-login').onclick = () => {
-      errorBox.style.display = 'none';
-      const username = document.getElementById('regUsername').value.trim();
-      const password = document.getElementById('regPassword').value;
-      const cleanUsername = username.replace('@', '').toLowerCase();
-      const email = cleanUsername + '@yoron.com';
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            db.ref('users/' + userCredential.user.uid).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    showApp(snapshot.val().username, snapshot.val().balance);
-                }
-            });
-        })
-        .catch((error) => {
-            showError("Неверный логин или пароль");
-        });
-  };
-
-  document.getElementById('btn-logout').onclick = () => {
-      auth.signOut().then(() => {
-          document.getElementById('screen-main').style.display = 'none';
-          document.getElementById('screen-auth').classList.add('active');
-          document.getElementById('regUsername').value = '';
-          document.getElementById('regPassword').value = '';
-          errorBox.style.display = 'none';
+      // Слушаем изменения баланса
+      userRef.on('value', (snap) => {
+          const data = snap.val();
+          document.getElementById('balanceDisplay').innerText = data.balance;
+          document.getElementById('profileBalance').innerText = data.balance;
       });
-  };
+  });
 
+  // 3. НАВИГАЦИЯ
   document.getElementById('nav-chats').onclick = () => switchTab('chats');
   document.getElementById('nav-profile').onclick = () => switchTab('profile');
   document.getElementById('chat-btn-ai').onclick = () => openChat('ai');
   document.getElementById('chat-btn-all').onclick = () => openChat('all');
   document.getElementById('btn-close-chat').onclick = closeChat;
   document.getElementById('btn-send-msg').onclick = sendMessage;
-
-  function showApp(username, balance) {
-      currentUser = username;
-      document.getElementById('screen-auth').classList.remove('active');
-      document.getElementById('screen-main').style.display = 'flex';
-      document.getElementById('profileUsername').innerText = '@' + username;
-      document.getElementById('balanceDisplay').innerText = balance;
-      document.getElementById('profileBalance').innerText = balance;
-  }
 
   function switchTab(tab) {
       document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
@@ -232,6 +166,7 @@
       document.getElementById('nav-' + tab).classList.add('active');
   }
 
+  // 4. ЧАТ
   let currentChat = 'all';
   function openChat(chatName) {
       currentChat = chatName;
@@ -274,7 +209,6 @@
                   const lowerText = text.toLowerCase();
                   if (lowerText.includes('привет')) aiReply = "Привет! Рад тебя видеть в Yoron. Чем могу помочь?";
                   else if (lowerText.includes('кристалл')) aiReply = "Кристаллы 💎 — это внутренняя валюта. Их можно тратить на подарки!";
-                  else if (lowerText.includes('подарок')) aiReply = "В магазине есть обычные и легендарные подарки 👑!";
                   db.ref('chats/' + currentChat).push({ text: aiReply, sender: '@ai', time: Date.now() });
               }, 1000);
           }
